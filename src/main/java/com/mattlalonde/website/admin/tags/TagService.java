@@ -12,6 +12,7 @@ public interface TagService {
     Tag updateTag(UpdateTagCommand command);
 
     List<Tag> getAll();
-    List<Tag> searchForNameContaining(String searchTerm);
+    List<Tag> get(List<UUID> tagIds);
+    List<Tag> searchForNameContaining(String searchTerm, List<UUID> excludeIds);
     Tag getById(UUID id);
 }

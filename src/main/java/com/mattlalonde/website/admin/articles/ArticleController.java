@@ -2,7 +2,11 @@ package com.mattlalonde.website.admin.articles;
 
 import com.mattlalonde.website.admin.articles.domain.Article;
 import com.mattlalonde.website.admin.articles.domain.commands.*;
+import com.mattlalonde.website.admin.articles.dtos.ArticleDTO;
+import com.mattlalonde.website.admin.articles.dtos.ArticleListDTO;
 import com.mattlalonde.website.admin.common.exceptions.EntityNotFoundException;
+import com.mattlalonde.website.admin.tags.TagService;
+import com.mattlalonde.website.admin.tags.domain.Tag;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.bind.annotation.*;
@@ -11,16 +15,20 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 public class ArticleController {
 
     private final ArticleService articleService;
+    private final TagService tagService;
 
-    public ArticleController(ArticleService articleService) {
+    public ArticleController(ArticleService articleService, TagService tagService) {
         this.articleService = articleService;
+        this.tagService = tagService;
     }
 
     @Getter
@@ -30,8 +38,9 @@ public class ArticleController {
     }
 
     @PostMapping("/api/article/create")
-    public Article createArticle(@RequestBody @Valid CreateArticleRequest request) {
-        return articleService.createArticle(new CreateArticleCommand(UUID.randomUUID(), request.getTitle(), LocalDateTime.now()));
+    public ArticleDTO createArticle(@RequestBody @Valid CreateArticleRequest request) {
+        Article article = articleService.createArticle(new CreateArticleCommand(UUID.randomUUID(), request.getTitle(), LocalDateTime.now()));
+        return ArticleDtoBuilder.buildDetails(article, new ArrayList<>());
     }
 
     @Getter
@@ -43,8 +52,10 @@ public class ArticleController {
     }
 
     @PutMapping("/api/article/{id}/update")
-    public Article updateArticle(@PathVariable("id") String id, @RequestBody @Valid UpdateArticleRequest request) {
-        return articleService.updateArticle(new UpdateArticleCommand(UUID.fromString(id), request.title, request.precis, request.body));
+    public ArticleDTO updateArticle(@PathVariable("id") String id, @RequestBody @Valid UpdateArticleRequest request) {
+        Article article =  articleService.updateArticle(new UpdateArticleCommand(UUID.fromString(id), request.title, request.precis, request.body));
+
+        return getArticleDto(article);
     }
 
     @Getter
@@ -54,23 +65,31 @@ public class ArticleController {
     }
 
     @PutMapping("/api/article/{id}/publish")
-    public Article publishArticle(@PathVariable("id") String id, @RequestBody @Valid PublishArticleRequest request) {
-        return articleService.publishArticle(new PublishArticleCommand(UUID.fromString(id), request.getPublicationDate()));
+    public ArticleDTO publishArticle(@PathVariable("id") String id, @RequestBody @Valid PublishArticleRequest request) {
+        Article article =  articleService.publishArticle(new PublishArticleCommand(UUID.fromString(id), request.getPublicationDate()));
+
+        return getArticleDto(article);
     }
 
     @PutMapping("/api/article/{id}/takeoffline")
-    public Article unpublishArticle(@PathVariable("id") String id) {
-        return articleService.takeArticleOffline(new UnpublishArticleCommand(UUID.fromString(id)));
+    public ArticleDTO unpublishArticle(@PathVariable("id") String id) {
+        Article article = articleService.takeArticleOffline(new UnpublishArticleCommand(UUID.fromString(id)));
+
+        return getArticleDto(article);
     }
 
     @DeleteMapping("/api/article/{id}")
-    public Article deleteArticle(@PathVariable("id") String id) {
-        return articleService.deleteArticle(new DeleteArticleCommand(UUID.fromString(id)));
+    public ArticleDTO deleteArticle(@PathVariable("id") String id) {
+        Article article = articleService.deleteArticle(new DeleteArticleCommand(UUID.fromString(id)));
+
+        return getArticleDto(article);
     }
 
     @PutMapping("/api/article/{id}/reinstate")
-    public Article reinstateArticle(@PathVariable("id") String id) {
-        return articleService.reinstateArticle(new ReinstateArticleCommand(UUID.fromString(id)));
+    public ArticleDTO reinstateArticle(@PathVariable("id") String id) {
+        Article article = articleService.reinstateArticle(new ReinstateArticleCommand(UUID.fromString(id)));
+
+        return getArticleDto(article);
     }
 
     @Getter
@@ -80,22 +99,45 @@ public class ArticleController {
     }
 
     @PutMapping("/api/article/{id}/addtag")
-    public Article addTagToArticle(@PathVariable("id") String id, @RequestBody @Valid ArticleTagRequest request) {
-        return articleService.addTagToArticle(new AddArticleTagCommand(UUID.fromString(id), UUID.fromString(request.getTagId())));
+    public ArticleDTO addTagToArticle(@PathVariable("id") String id, @RequestBody @Valid ArticleTagRequest request) {
+        Article article = articleService.addTagToArticle(new AddArticleTagCommand(UUID.fromString(id), UUID.fromString(request.getTagId())));
+
+        return getArticleDto(article);
     }
 
     @PutMapping("/api/article/{id}/removetag")
-    public Article removeTagFromArticle(@PathVariable("id") String id, @RequestBody @Valid ArticleTagRequest request) {
-        return articleService.removeTagFromArticle(new RemoveArticleTagCommand(UUID.fromString(id), UUID.fromString(request.getTagId())));
+    public ArticleDTO removeTagFromArticle(@PathVariable("id") String id, @RequestBody @Valid ArticleTagRequest request) {
+        Article article = articleService.removeTagFromArticle(new RemoveArticleTagCommand(UUID.fromString(id), UUID.fromString(request.getTagId())));
+
+        return getArticleDto(article);
     }
 
     @GetMapping("/api/article/all")
-    public List<Article> getAllArticles() {
-        return articleService.getAll();
+    public ArticleListDTO getAllArticles() {
+
+        List<Article> articles = articleService.getAll();
+        List<UUID> tagIds = articles.stream()
+                                    .flatMap(article -> article.getTags().stream().map(tag -> tag.getTagId()))
+                                    .distinct()
+                                    .collect(Collectors.toList());
+        List<Tag> tags = tagService.get(tagIds);
+
+        return ArticleDtoBuilder.buildList(articles, tags);
     }
 
     @GetMapping("/api/article/{id}")
-    public Article getById(@PathVariable("id") String id) throws EntityNotFoundException {
-        return articleService.getById(UUID.fromString(id));
+    public ArticleDTO getById(@PathVariable("id") String id) throws EntityNotFoundException {
+        return getArticleDto(UUID.fromString(id));
+    }
+
+    private ArticleDTO getArticleDto(UUID id) {
+        Article article = articleService.getById(id);
+        return getArticleDto(article);
+    }
+
+    private ArticleDTO getArticleDto(Article article) {
+        List<Tag> tags  = tagService.get(article.getTags().stream().map(tag -> tag.getTagId()).collect(Collectors.toList()));
+
+        return ArticleDtoBuilder.buildDetails(article, tags);
     }
 }

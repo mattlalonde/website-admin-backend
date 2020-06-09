@@ -24,12 +24,6 @@ public class ArticleTag implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "article_id", nullable = false, updatable = false, insertable = false)
-    //@Column(name = "article_id")
     @JsonIgnore
     private Article article;
-
-    //@Id
-    //@ManyToOne
-    //@Column(name = "tag_id", nullable = false, insertable = true, updatable = false)
-    //private UUID tagId;
 }

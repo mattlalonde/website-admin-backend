@@ -101,7 +101,7 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public List<Article> getAll() {
-        return articleRepository.findAll(Sort.by("createdTimestamp"));
+        return articleRepository.findAll(Sort.by(Sort.Direction.DESC,"createdTimestamp"));
     }
 
     @Override

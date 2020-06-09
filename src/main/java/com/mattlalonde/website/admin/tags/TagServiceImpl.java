@@ -7,8 +7,10 @@ import com.mattlalonde.website.admin.tags.domain.commands.UpdateTagCommand;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class TagServiceImpl implements TagService {
@@ -36,12 +38,23 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public List<Tag> getAll() {
-        return tagRepository.findAll(Sort.by("name"));
+        return tagRepository.findAll(Sort.by(Sort.Order.asc("name").ignoreCase()));
     }
 
     @Override
-    public List<Tag> searchForNameContaining(String searchTerm) {
-        return tagRepository.findByNameContaining(searchTerm);
+    public List<Tag> get(List<UUID> tagIds) {
+        return tagRepository.findAllById(tagIds);
+    }
+
+    @Override
+    public List<Tag> searchForNameContaining(String searchTerm, List<UUID> excludeIds) {
+
+        if(excludeIds.isEmpty()){
+            return tagRepository.findByNameContainingIgnoreCase(searchTerm, Sort.by(Sort.Order.asc("name").ignoreCase()));
+        }
+        else {
+            return tagRepository.findByNameContainingIgnoreCaseAndIdNotIn(searchTerm, excludeIds, Sort.by(Sort.Order.asc("name").ignoreCase()));
+        }
     }
 
     @Override

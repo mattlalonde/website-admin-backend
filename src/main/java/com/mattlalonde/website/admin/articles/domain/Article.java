@@ -42,7 +42,6 @@ public class Article implements Serializable {
     private String body;
 
     @OneToMany(mappedBy = "article", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    //@JoinColumn(name = "article_id", referencedColumnName = "id", nullable = false)
     private List<ArticleTag> tags = new ArrayList<>();
 
     public static Article create(CreateArticleCommand command) {
@@ -57,10 +56,6 @@ public class Article implements Serializable {
         result.setState(ArticleState.DRAFT);
 
         return result;
-    }
-
-    public void addTag(Tag tag) {
-
     }
 
     public void apply(UpdateArticleCommand command) {
