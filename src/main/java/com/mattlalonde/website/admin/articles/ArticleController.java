@@ -9,6 +9,7 @@ import com.mattlalonde.website.admin.tags.TagService;
 import com.mattlalonde.website.admin.tags.domain.Tag;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -21,6 +22,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
+@Secured("ROLE_ADMIN")
 public class ArticleController {
 
     private final ArticleService articleService;
