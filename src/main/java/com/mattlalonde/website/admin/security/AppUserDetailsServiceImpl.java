@@ -19,6 +19,7 @@ public class AppUserDetailsServiceImpl implements AppUserDetailsService {
     }
 
     @Override
+    @Transactional
     public UserDetails loadUserByUsername(String email)
             throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
@@ -30,6 +31,7 @@ public class AppUserDetailsServiceImpl implements AppUserDetailsService {
     }
 
     @Override
+    @Transactional
     public UserDetails loadUserById(UUID id) {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException(User.class, "id", id.toString())

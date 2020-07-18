@@ -1,18 +1,18 @@
 package com.mattlalonde.website.admin.security;
 
+import com.mattlalonde.website.admin.security.domain.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.security.Key;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenProvider {
@@ -33,9 +33,7 @@ public class JwtTokenProvider {
         this.signingKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(Authentication authentication) {
-
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+    public String generateToken(UserPrincipal userPrincipal) {
 
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
@@ -44,8 +42,17 @@ public class JwtTokenProvider {
                 .setSubject(userPrincipal.getId().toString())
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate)
+                .claim("firstName", userPrincipal.getFirstName())
+                .claim("lastName", userPrincipal.getLastName())
+                .claim("email", userPrincipal.getEmail())
+                .claim("roles", userPrincipal.getAuthorities().stream().map(authority -> authority.getAuthority()).collect(Collectors.toList()))
                 .signWith(signingKey)
                 .compact();
+    }
+
+    public String generateToken(User user) {
+        UserPrincipal userPrincipal = UserPrincipal.create(user);
+        return generateToken(userPrincipal);
     }
 
     public UUID getUserIdFromJWT(String token) {
