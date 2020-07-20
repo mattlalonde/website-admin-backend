@@ -9,6 +9,7 @@ import com.mattlalonde.website.admin.tags.dtos.TagDTO;
 import com.mattlalonde.website.admin.tags.dtos.TagListDTO;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -20,6 +21,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
+@Secured("ROLE_ADMIN")
 public class TagController {
 
     private final TagService tagService;
