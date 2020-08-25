@@ -9,8 +9,8 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.mattlalonde</groupId>
-	<artifactId>admin</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>website-admin-api</artifactId>
+	<version>0.1.0</version>
 	<name>admin</name>
 	<description>website admin back end</description>
 

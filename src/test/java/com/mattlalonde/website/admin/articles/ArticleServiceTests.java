@@ -5,7 +5,7 @@ import com.mattlalonde.website.admin.articles.domain.ArticleState;
 import com.mattlalonde.website.admin.articles.domain.commands.CreateArticleCommand;
 import com.mattlalonde.website.admin.articles.domain.commands.PublishArticleCommand;
 import com.mattlalonde.website.admin.articles.domain.commands.UpdateArticleCommand;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
