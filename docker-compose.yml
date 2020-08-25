@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:12.3
+    restart: always
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d
+      - ~/Dev/Projects/Website/Database/data:/var/lib/postgresql/data
+    ports:
+      - '5555:5432'
+    environment:
+      POSTGRES_PASSWORD: 'mlWebsitePassword'
+      POSTGRES_DB: 'mlWebsite'
+      POSTGRES_USER: 'mattlalonde'
+    networks:
+      - backend
+
+  admin-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: website_admin_api
+    ports:
+      - '8080:8080'
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mlWebsite
+      SPRING_DATASOURCE_USERNAME: ml_website_admin_user
+      SPRING_DATASOURCE_PASSWORD: sQfXO4^A0WGA
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      - db
+
+networks:
+  backend:
+  frontend:
